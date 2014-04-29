@@ -55,7 +55,7 @@ class MyEnsemble:
 		return self.pipeline.predict(x)
 
 
-class MyClassifier:
+class MySGDClassifier:
 	def __init__(self, **kwargs):
 
 		#self.dict = dict()
@@ -75,6 +75,7 @@ class MyClassifier:
 	def predict(self,x):
 		return self.pipeline.predict(x)
 
+
 if __name__ == '__main__':
     
     try:
@@ -87,7 +88,12 @@ if __name__ == '__main__':
         parser.add_argument('-id', type=int,
                             default=1,
                             choices=[1,2,3],
-                            help='Dataset id')
+                            help='Classifier id')
+
+        parser.add_argument('-cid', type=int,
+                            default=1,
+                            choices=[1,2,3],
+                            help='Classifier id')
 
         parser.add_argument('-plotsvd', type=bool,
                             default=False,
@@ -99,11 +105,8 @@ if __name__ == '__main__':
 
         args = parser.parse_args()
 
-        n_features = 100 ## dataset id = 3
-        if args.id == None or args.id == 1:
-            n_features = 253659
-        elif args.id == 2:
-            n_features = 200
+	args.id = 1 # override whatever user's input since we only be experimenting with dataset #1 here...
+        n_features = 253659
         
         fname_trn = os.path.join(args.d, "dt%d.%s.svm" % (args.id, "trn"))
         fname_vld = os.path.join(args.d, "dt%d.%s.svm" % (args.id, "vld"))
@@ -150,42 +153,56 @@ if __name__ == '__main__':
 
         
         ### perform grid search using validation samples
-        dt1_grid = [{'loss': ['modified_huber', 'squared_hinge'],'penalty':['l2'],'class_weight':['auto',None],'alpha':[0.00025],'n_iter':[5,10,15,20,25,30,50,100]}]
+        dt1_grid = [{'loss': ['modified_huber', 
+			'squared_hinge'],
+			'penalty':['l2'],
+			'class_weight':['auto',None],
+			'alpha':[0.00025],
+			'n_iter':[5,10,15,20,25,30,50,100]}]
 
 
-        dt2_grid = [{'kernel': ['rbf'], 'C': [1.0, 100.0, 10000.0],
-                     'gamma': [0.1, 1.0, 10.0]}]
+        dt2_grid = [{'C': [1, 10, 50, 100],
+			'loss':['l1','l2'],
+			'penalty':['l1','l2'],
+			'dual':[True,False],
+			'tol':[0.0001,0.001,0.01],
+			'multi_class':['ovr','crammer_singer'],
+			'fit_intercept':[True,False],
+			'intercept_scaling':[0.01,0.1,1]}]
 
         dt3_grid = [{'kernel': ['rbf'], 'C': [1.0, 100.0, 10000.0],
                      'gamma': [0.1, 1.0, 10.0]}]
 
         grids = (None, dt1_grid, dt2_grid, dt3_grid)
-        classifiers = (None, MyClassifier, SVC, SVR)
+        classifiers = (None, MySGDClassifier, LinearSVC, SVR)
         metrics = (None, accuracy_score, accuracy_score, mean_squared_error)
         str_formats = (None, "%d", "%d", "%.6f")
         #LinearSVC(penalty='l2', loss='l2', dual=True, tol=0.0001, C=1.0,
 
-        grid_obj=grids[args.id]
-        cls_obj=classifiers[args.id]
-        metric_obj=metrics[args.id]
+        grid_obj=grids[args.cid]
+        cls_obj=classifiers[args.cid]
+        metric_obj=metrics[args.cid]
         
         best_param = None
         best_score = None
         best_svc = None
         
         for one_param in ParameterGrid(grid_obj):
-            cls = cls_obj(**one_param)
-            cls.fit(data_trn, lbl_trn)
-            one_score = metric_obj(lbl_vld, cls.predict(data_vld))
+		try:
+			cls = cls_obj(**one_param)
+			cls.fit(data_trn, lbl_trn)
+			one_score = metric_obj(lbl_vld, cls.predict(data_vld))
+
+			print ("param=%s, score=%.6f" % (repr(one_param),one_score))
             
-            print ("param=%s, score=%.6f" % (repr(one_param),one_score))
-            
-            if ( best_score is None or 
-                 (args.id < 3 and best_score < one_score) or
-                 (args.id == 3 and best_score > one_score) ):
-                best_param = one_param
-                best_score = one_score
-                best_svc = cls
+			if ( best_score is None or (args.id < 3 and best_score < one_score) or (args.id == 3 and best_score > one_score) ):
+				best_param = one_param
+				best_score = one_score
+				best_svc = cls
+		except KeyboardInterrupt:
+			raise
+		except:
+			print "Exception due to invalid parameter combination: {}".format(str(sys.exc_info()[0]))
             
         pred_vld = best_svc.predict(data_vld)
         pred_tst = best_svc.predict(data_tst)
