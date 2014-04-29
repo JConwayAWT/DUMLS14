@@ -6,8 +6,81 @@ from sklearn.externals import joblib
 
 
 def main():
-  tryLinearSVC(True)
+  print "Starting..."
+  #Best score so far = .56
+  #tryLinearSVC(True)
 
+  #Best score so far = .42
+  #Alpha = 0.1, fit_prior = False
+  #tryMultinomialNaiveBayes(False)
+
+  #Best score so far = .47
+  #Alpha = 0.1, Binarize = 0, fit_prior = False
+  tryBinomialNaiveBayes(False)
+
+def tryBinomialNaiveBayes(goFast):
+  best_score = 0
+
+  from sklearn.datasets import dump_svmlight_file, load_svmlight_file
+  if goFast:
+    training_data, training_labels = load_svmlight_file("dt1_1500.trn.svm", n_features=253659, zero_based=True)
+    validation_data, validation_labels = load_svmlight_file("dt1_1500.vld.svm", n_features=253659, zero_based=True)
+    testing_data, testing_labels = load_svmlight_file("dt1_1500.tst.svm", n_features=253659, zero_based=True)
+  else:
+    training_data, training_labels = load_svmlight_file("dt1.trn.svm")
+    validation_data, validation_labels = load_svmlight_file("dt1.vld.svm")
+    testing_data, testing_labels = load_svmlight_file("dt1.tst.svm")
+
+  from sklearn.naive_bayes import BernoulliNB
+
+  for alpha_value in [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1]:
+    for binarize_value in [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1]:
+      for fit_prior_value in [True, False]:
+        binary_operator = BernoulliNB(alpha_value,binarize_value,fit_prior_value)
+        binary_operator.fit(training_data,training_labels)
+        current_score = binary_operator.score(validation_data,validation_labels)
+
+        print "Current test: " + str(alpha_value), str(binarize_value), fit_prior_value
+        print "Current score: " + str(current_score)
+
+        if current_score > best_score:
+          best_score = current_score
+          print "***NEW MAXIMUM SCORE: " + str(best_score)
+          print "***NEW MAXIMUM PARAMETERS: " + str(alpha_value), str(binarize_value), fit_prior_value
+
+  print "Best score was " + str(best_score)
+
+def tryMultinomialNaiveBayes(goFast):
+
+  best_score = 0
+
+  from sklearn.datasets import dump_svmlight_file, load_svmlight_file
+  if goFast:
+    training_data, training_labels = load_svmlight_file("dt1_1500.trn.svm", n_features=253659, zero_based=True)
+    validation_data, validation_labels = load_svmlight_file("dt1_1500.vld.svm", n_features=253659, zero_based=True)
+    testing_data, testing_labels = load_svmlight_file("dt1_1500.tst.svm", n_features=253659, zero_based=True)
+  else:
+    training_data, training_labels = load_svmlight_file("dt1.trn.svm")
+    validation_data, validation_labels = load_svmlight_file("dt1.vld.svm")
+    testing_data, testing_labels = load_svmlight_file("dt1.tst.svm")
+
+  from sklearn.naive_bayes import MultinomialNB
+
+  for alpha_value in [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1]:
+    for fit_prior_value in [True, False]:
+      multinomial_operator = MultinomialNB(alpha=alpha_value,fit_prior=fit_prior_value)
+      multinomial_operator.fit(training_data,training_labels)
+      current_score = multinomial_operator.score(validation_data,validation_labels)
+
+      print "Current test: " + str(alpha_value), fit_prior_value
+      print "Current score: " + str(current_score)
+
+      if current_score > best_score:
+        best_score = current_score
+        print "***NEW MAXIMUM SCORE: " + str(best_score)
+        print "***NEW MAXIMUM PARAMETERS: " + str(alpha_value), fit_prior_value
+
+  print "Best score was " + str(best_score)
 
 def tryLinearSVC(goFast):
     #Testing time went from 180s to 30s by using the 1500-line files,
