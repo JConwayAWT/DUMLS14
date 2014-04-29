@@ -10,19 +10,17 @@ def main():
 
 
 def tryLinearSVC(goFast):
+    #Testing time went from 180s to 30s by using the 1500-line files,
+    #though accuracy dropped significantly.  Anyway, just judge your
+    #accuracy relative to the baseline for 1500.  It doesn't matter.
+    #Test it by passing in False before any submission, though.
     try:
-
-        #Testing time went from 180s to 30s by using the 1500-line files,
-        #though accuracy dropped significantly.  Anyway, just judge your
-        #accuracy relative to the baseline for 1500.  It doesn't matter.
-        #Test it by passing in False before any submission, though.
-        goSixTimesFasterButLoseAccuracy = goFast
 
         args_id = 1
         args_d = "."
         n_features = 253659
 
-        if goSixTimesFasterButLoseAccuracy:
+        if goFast:
           fname_trn = os.path.join(args_d, "dt%d_1500.%s.svm" % (args_id, "trn"))
           fname_vld = os.path.join(args_d, "dt%d_1500.%s.svm" % (args_id, "vld"))
           fname_tst = os.path.join(args_d, "dt%d_1500.%s.svm" % (args_id, "tst"))
@@ -49,26 +47,13 @@ def tryLinearSVC(goFast):
         data_tst, lbl_tst = load_svmlight_file(fname_tst, n_features=253659, zero_based=True)
 
         ### perform grid search using validation samples
-        from sklearn.grid_search import ParameterGrid
-        from sklearn.svm import LinearSVC, SVC, SVR
-        from sklearn.metrics import mean_squared_error, accuracy_score
-        dt1_grid = [{'C': [1e-1, 1e0, 1e1, 1e2, 1e3]}]
+        from sklearn.svm import LinearSVC
+        from sklearn.metrics import accuracy_score
 
-        dt2_grid = [{'kernel': ['rbf'], 'C': [1.0, 100.0, 10000.0],
-                     'gamma': [0.1, 1.0, 10.0]}]
-
-        dt3_grid = [{'kernel': ['rbf'], 'C': [1.0, 100.0, 10000.0],
-                     'gamma': [0.1, 1.0, 10.0]}]
-
-        grids = (None, dt1_grid, dt2_grid, dt3_grid)
-        classifiers = (None, LinearSVC, SVC, SVR)
-        metrics = (None, accuracy_score, accuracy_score, mean_squared_error)
         str_formats = (None, "%d", "%d", "%.6f")
-        #LinearSVC(penalty='l2', loss='l2', dual=True, tol=0.0001, C=1.0,
 
-        grid_obj=grids[args_id]
-        cls_obj=classifiers[args_id]
-        metric_obj=metrics[args_id]
+        cls_obj=LinearSVC
+        metric_obj=accuracy_score
 
         best_param = None
         best_score = None
