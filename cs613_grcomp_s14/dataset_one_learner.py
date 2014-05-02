@@ -16,7 +16,106 @@ def main():
 
   #Best score so far = .47
   #Alpha = 0.1, Binarize = 0, fit_prior = False
-  tryBinomialNaiveBayes(False)
+  #tryBinomialNaiveBayes(False)
+
+  #Best score so far = .41
+  #RFC Params: {'oob_score': True, 'n_jobs': 4, 'verbose': 0, 'bootstrap': False, 'min_samples_leaf': 1, 'n_estimators': 50, 'min_samples_split': 32,    'criterion': 'entropy', 'max_features': 'auto', 'max_depth': 100}
+  #RPCA Params: {'n_components': 10, 'iterated_power': 3, 'whiten': True}
+  #tryTruncatedSVD(False)
+
+def tryTruncatedSVD(goFast):
+  bestScore = 0
+  bestRpcaParams = None
+  bestRfcParams = None
+
+  from sklearn.datasets import dump_svmlight_file, load_svmlight_file
+  if goFast:
+    training_data, training_labels = load_svmlight_file("dt1_1500.trn.svm", n_features=253659, zero_based=True)
+    validation_data, validation_labels = load_svmlight_file("dt1_1500.vld.svm", n_features=253659, zero_based=True)
+    testing_data, testing_labels = load_svmlight_file("dt1_1500.tst.svm", n_features=253659, zero_based=True)
+  else:
+    training_data, training_labels = load_svmlight_file("dt1.trn.svm", n_features=253659, zero_based=True)
+    validation_data, validation_labels = load_svmlight_file("dt1.vld.svm", n_features=253659, zero_based=True)
+    testing_data, testing_labels = load_svmlight_file("dt1.tst.svm", n_features=253659, zero_based=True)
+
+  from sklearn.svm import LinearSVC
+  from sklearn.grid_search import ParameterGrid
+  from sklearn.decomposition import TruncatedSVD
+  from sklearn.decomposition import RandomizedPCA
+  from sklearn.ensemble import RandomForestClassifier
+  from sklearn.metrics import accuracy_score
+
+  rpcaDataGrid = [{"n_components": [10,45,70,100],
+                    "iterated_power": [2, 3, 4],
+                    "whiten": [True]}]
+
+  rfcDataGrid = [{"n_estimators":[5,50,100,250],
+                  "criterion": ["gini","entropy"],
+                  "max_features": ["auto"],
+                  "max_depth": [10, 100, 1000],
+                  "min_samples_split": [2, 8, 32],
+                  "min_samples_leaf": [1, 4, 16],
+                  "bootstrap":[True, False],
+                  "oob_score":[True, False],
+                  "n_jobs": [4],
+                  "verbose": [0]}]
+
+
+  for rpca_parameter_set in ParameterGrid(rpcaDataGrid):
+    try:
+      rpcaOperator = RandomizedPCA(**rpca_parameter_set)
+      rpcaOperator.fit(training_data, training_labels)
+      reduced_training_data = rpcaOperator.transform(training_data,training_labels)
+      reduced_validation_data = rpcaOperator.transform(validation_data,validation_labels)
+      for rfc_parameter_set in ParameterGrid(rfcDataGrid):
+        try:
+          rfcOperator = RandomForestClassifier(**rfc_parameter_set)
+          rfcOperator.fit(reduced_training_data,training_labels)
+          score = accuracy_score(validation_labels, rfcOperator.predict(reduced_validation_data))
+          print "Score = " + str(score)
+          if score > bestScore:
+            bestScore = score
+            bestRfcParams = rfc_parameter_set
+            bestRpcaParams = rpca_parameter_set
+            print "***New best score: " + str(bestScore)
+            print "***RFC Params: " + str(rfc_parameter_set)
+            print "***RPCA Params: " + str(rpca_parameter_set)
+        except:
+          print "Error, skipping some parameters..."
+          print "***New best score: " + str(bestScore)
+          print "***RFC Params: " + str(rfc_parameter_set)
+          print "***RPCA Params: " + str(rpca_parameter_set)
+    except:
+      print "Error, skipping some parameters..."
+      print "***New best score: " + str(bestScore)
+      print "***RFC Params: " + str(rfc_parameter_set)
+      print "***RPCA Params: " + str(rpca_parameter_set)
+
+  print "***FINAL best score: " + str(bestScore)
+  print "***FINAL RFC Params: " + str(rfc_parameter_set)
+  print "***FINAL RPCA Params: " + str(rpca_parameter_set)
+
+#options:
+# n_estimators (int, default = 10)
+# criterion ("gini" or "entropy")
+# max_features ("auto")
+# max_depth (10, 100, 1000)
+# min_samples_split (2, 8, 32)
+# min_samples_leaf (1, 4, 16)
+# bootstrap (true/false)
+# oob_score (true/false)
+# n_jobs (1, 2, 4)
+# verbose (1)
+
+
+
+
+def fitAndScoreWithLinearSVC(training_data, training_labels, validation_data, validation_labels):
+  from sklearn.svm import LinearSVC; from sklearn.metrics import accuracy_score
+  svcOperator = LinearSVC(C=5,class_weight="auto")
+  svcOperator.fit(training_data,training_labels)
+  score = accuracy_score(validation_labels,svcOperator.predict(validation_data))
+  print "Score = " + str(score)
 
 def tryBinomialNaiveBayes(goFast):
   best_score = 0
