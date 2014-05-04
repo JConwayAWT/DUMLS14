@@ -8,7 +8,7 @@ from sklearn.externals import joblib
 def main():
   print "Starting..."
   #Best score so far = .56
-  #tryLinearSVC(True)
+  #tryLinearSVC(False)
 
   #Best score so far = .42
   #Alpha = 0.1, fit_prior = False
@@ -22,6 +22,249 @@ def main():
   #RFC Params: {'oob_score': True, 'n_jobs': 4, 'verbose': 0, 'bootstrap': False, 'min_samples_leaf': 1, 'n_estimators': 50, 'min_samples_split': 32,    'criterion': 'entropy', 'max_features': 'auto', 'max_depth': 100}
   #RPCA Params: {'n_components': 10, 'iterated_power': 3, 'whiten': True}
   #tryTruncatedSVD(False)
+
+  #Best score = .34
+  #gamma = 150, all others at default
+  #NOTE: Label spreading gave pretty much the same scores
+  #tryLabelPropagation(False)
+
+  #Best score = 0.274
+  #tryLinearDiscriminantAnalysis(False)
+
+  #***New best score: 0.4434
+  #***RPCA params: {'n_components': 100, 'iterated_power': 4, 'whiten': True}
+  #***Operator params: {'n_components': 100}
+  #from sklearn.lda import LDA
+  #ldaGrid = [{"n_components":[1,10,100]}]
+  #tryDenseOperator(False, LDA, ldaGrid)
+
+##  from sklearn.linear_model import BayesianRidge
+##  brGrid = [{"n_iter":[10, 30, 100, 300, 500],
+##             "tol": [0.0005, 0.001, 0.005, 0.01],
+##             "alpha_1": [0.0000005,0.000001,0.000005,0.00001],
+##             "alpha_2": [0.0000005,0.000001,0.000005,0.00001],
+##             "lambda_1": [0.0000005,0.000001,0.000005,0.00001],
+##             }]
+##  tryDenseOperator(False, BayesianRidge, brGrid)
+
+##  ***New best score: 0.403
+##  ***RPCA params: {'n_components': 100, 'iterated_power': 4, 'whiten': True}
+##  ***Operator params: {'alpha': 5, 'max_iter': 125, 'tol': 0.01, 'solver': 'sparse_cg'}
+##  from sklearn.linear_model import RidgeClassifier
+##  rcGrid = [{"alpha":[0.1,0.5,1,2,5],
+##             "max_iter":[1,5,25,125],
+##             "solver":["auto","svd","dense_cholesky","lsqr","sparse_cg"],
+##             "tol":[0.0005,0.001,0.005,0.01]
+##             }]
+##  tryDenseOperator(False,RidgeClassifier,rcGrid)
+
+##  from sklearn.cross_decomposition import PLSRegression
+##
+##  plsrGrid = [{"n_components":[2,10,50,250,1250],
+##               "scale":[True,False],
+##               "max_iter":[20,100,500,2500],
+##               "tol":[0.0000005,0.000001,0.000005,0.00001],
+##               }]
+##  tryDenseOperator(False,PLSRegression,plsrGrid)
+
+##  from sklearn.svm import NuSVC
+##
+##  nsvcGrid = [{"nu":[0.1,0.2,0.5,0.8,1],
+##               "kernel":["linear","poly","rbf","sigmoid","precomputed"],
+##               "degree":[1,2,3,4],
+##               "gamma":[0,1,5,25],
+##               "coef0":[0,1,2,3,4],
+##               "probability":[True,False],
+##               "shrinking":[True,False],
+##               "tol":[0.0005,0.001,0.005,0.01]
+##               }]
+##  tryDenseOperator(False,NuSVC,nsvcGrid)
+
+##  from sklearn.svm import SVR
+##
+##  svrGrid = [{"C":[1, 10, 100],
+##              "epsilon":[.1,.5,.9],
+##              "kernel":["linear","poly","rbf","sigmoid"],
+##              "degree":[1,2,3,4],
+##              "gamma":[0,1,5,25],
+##              "coef0":[0,1,2,3,4],
+##              "probability":[False,True],
+##              "shrinking":[True,False],
+##              "tol":[0.0005,0.001,0.005,0.01]
+##              }]
+##  trySparseOperator(False,SVR,svrGrid)
+
+##  ***New best score: 0.3788
+##  ***RPCA params: {'n_components': 100, 'iterated_power': 4, 'whiten': True}
+##  ***Operator params: {'max_features': 100, 'min_samples_split': 8, 'criterion': 'entropy', 'min_samples_leaf': 1}
+##  from sklearn.tree import DecisionTreeClassifier
+##
+##  dtcGrid = [{"criterion":["gini","entropy"],
+##              "max_features":[1,10,100,1000],
+##              "min_samples_split":[2,4,8,16],
+##              "min_samples_leaf":[1,2,4,8,16],
+##              }]
+##  tryDenseOperator(False,DecisionTreeClassifier,dtcGrid)
+
+##  from sklearn.tree import DecisionTreeRegressor
+##  dtrGrid = [{"criterion":["mse"],
+##              "min_samples_split":[2,4,8,16],
+##              "min_samples_leaf":[1,2,4,8,16],
+##              }]
+##  tryDenseOperator(False,DecisionTreeRegressor,dtrGrid)
+
+##  ***New best score: 0.2692
+##  ***RPCA params: {'n_components': 100, 'iterated_power': 3, 'whiten': True}
+##  ***Operator params: {'n_jobs': -2, 'n_clusters': 4, 'max_iter': 2, 'init': 'random', 'n_init': 15, 'tol': 0.0005}
+##  from sklearn.cluster import KMeans
+##  kmGrid = [{"n_clusters":[4, 8, 16, 32],
+##             "max_iter":[2,8,16,64],
+##             "n_init":[5,10,15],
+##             "init":['k-means++','random'],
+##             "tol":[0.00005,0.0001,0.0005,0.001],
+##             "n_jobs":[-2],
+##             }]
+##  tryDenseOperator(False,KMeans,kmGrid)
+
+def trySparseOperator(goFast, operatorClass, parameterGrid):
+  bestScore = 0
+  bestOperatorParams = None
+
+  from sklearn.datasets import dump_svmlight_file, load_svmlight_file
+  if goFast:
+    training_data, training_labels = load_svmlight_file("dt1_1500.trn.svm", n_features=253659, zero_based=True)
+    validation_data, validation_labels = load_svmlight_file("dt1_1500.vld.svm", n_features=253659, zero_based=True)
+    testing_data, testing_labels = load_svmlight_file("dt1_1500.tst.svm", n_features=253659, zero_based=True)
+  else:
+    training_data, training_labels = load_svmlight_file("dt1.trn.svm", n_features=253659, zero_based=True)
+    validation_data, validation_labels = load_svmlight_file("dt1.vld.svm", n_features=253659, zero_based=True)
+    testing_data, testing_labels = load_svmlight_file("dt1.tst.svm", n_features=253659, zero_based=True)
+
+  from sklearn.metrics import accuracy_score
+  from sklearn.grid_search import ParameterGrid
+
+  for sparse_operator_parameter_set in ParameterGrid(parameterGrid):
+    try:
+      sparseOperator = operatorClass(**sparse_operator_parameter_set)
+      sparseOperator.fit(training_data,training_labels)
+      score = accuracy_score(validation_labels,sparseOperator.predict(validation_data))
+      print "Score = " + str(score)
+      if score > bestScore:
+        bestScore = score
+        bestOperatorParams = dense_operator_parameter_set
+        print "***New best score: " + str(bestScore)
+        print "***Operator params: " + str(sparse_operator_parameter_set)
+    except:
+      print "Illegal combination skipped"
+      print sys.exc_info()[0]
+
+  print "***New best score: " + str(bestScore)
+  print "***Operator params: " + str(sparse_operator_parameter_set)
+
+def tryDenseOperator(goFast, operatorClass, parameterGrid):
+  bestScore = 0
+  bestRpcaParams = None
+  bestOperatorParams = None
+
+  from sklearn.datasets import dump_svmlight_file, load_svmlight_file
+  if goFast:
+    training_data, training_labels = load_svmlight_file("dt1_1500.trn.svm", n_features=253659, zero_based=True)
+    validation_data, validation_labels = load_svmlight_file("dt1_1500.vld.svm", n_features=253659, zero_based=True)
+    testing_data, testing_labels = load_svmlight_file("dt1_1500.tst.svm", n_features=253659, zero_based=True)
+  else:
+    training_data, training_labels = load_svmlight_file("dt1.trn.svm", n_features=253659, zero_based=True)
+    validation_data, validation_labels = load_svmlight_file("dt1.vld.svm", n_features=253659, zero_based=True)
+    testing_data, testing_labels = load_svmlight_file("dt1.tst.svm", n_features=253659, zero_based=True)
+
+  from sklearn.metrics import accuracy_score
+  from sklearn.grid_search import ParameterGrid
+  from sklearn.decomposition import RandomizedPCA
+
+  rpcaDataGrid = [{"n_components": [10,45,70,100],
+                    "iterated_power": [2, 3, 4],
+                    "whiten": [True]}]
+
+  for rpca_parameter_set in ParameterGrid(rpcaDataGrid):
+    try:
+      rpcaOperator = RandomizedPCA(**rpca_parameter_set)
+      rpcaOperator.fit(training_data,training_labels)
+      new_training_data = rpcaOperator.transform(training_data,training_labels)
+      new_validation_data = rpcaOperator.transform(validation_data,validation_labels)
+      for dense_operator_parameter_set in ParameterGrid(parameterGrid):
+        try:
+          denseOperator = operatorClass(**dense_operator_parameter_set)
+          denseOperator.fit(new_training_data,training_labels)
+          score = accuracy_score(validation_labels,denseOperator.predict(new_validation_data))
+          print "Score = " + str(score)
+          if score > bestScore:
+            bestScore = score
+            bestRpcaParams = rpca_parameter_set
+            bestOperatorParams = dense_operator_parameter_set
+            print "***New best score: " + str(bestScore)
+            print "***RPCA params: " + str(bestRpcaParams)
+            print "***Operator params: " + str(bestOperatorParams)
+        except:
+          print "Illegal combination skipped"
+          print sys.exc_info()[:2]
+    except:
+      print "Illegal combination skipped."
+      print sys.exc_info()[:2]
+
+  print "***New best score: " + str(bestScore)
+  print "***RPCA params: " + str(bestRpcaParams)
+  print "***Operator params: " + str(bestOperatorParams)
+
+
+def tryLinearDiscriminantAnalysis(goFast):
+  from sklearn.datasets import dump_svmlight_file, load_svmlight_file
+  if goFast:
+    training_data, training_labels = load_svmlight_file("dt1_1500.trn.svm", n_features=253659, zero_based=True)
+    validation_data, validation_labels = load_svmlight_file("dt1_1500.vld.svm", n_features=253659, zero_based=True)
+    testing_data, testing_labels = load_svmlight_file("dt1_1500.tst.svm", n_features=253659, zero_based=True)
+  else:
+    training_data, training_labels = load_svmlight_file("dt1.trn.svm", n_features=253659, zero_based=True)
+    validation_data, validation_labels = load_svmlight_file("dt1.vld.svm", n_features=253659, zero_based=True)
+    testing_data, testing_labels = load_svmlight_file("dt1.tst.svm", n_features=253659, zero_based=True)
+
+  from sklearn.lda import LDA
+  from sklearn.metrics import accuracy_score
+  from sklearn.grid_search import ParameterGrid
+  from sklearn.decomposition import RandomizedPCA
+
+  rpcaDataGrid = [{"n_components": [10,45,70,100],
+                    "iterated_power": [2, 3, 4],
+                    "whiten": [True]}]
+
+  for rpca_parameter_set in ParameterGrid(rpcaDataGrid):
+    rpcaOperator = RandomizedPCA(**rpca_parameter_set)
+    rpcaOperator.fit(training_data,training_labels)
+    new_training_data = rpcaOperator.transform(training_data,training_labels)
+    new_validation_data = rpcaOperator.transform(validation_data,validation_labels)
+    ldaOperator = LDA()
+    ldaOperator.fit(new_training_data,training_labels)
+    print "Score = " + str(accuracy_score(validation_labels,ldaOperator.predict(new_validation_data)))
+
+def tryLabelPropagation(goFast):
+  from sklearn.datasets import dump_svmlight_file, load_svmlight_file
+  if goFast:
+    training_data, training_labels = load_svmlight_file("dt1_1500.trn.svm", n_features=253659, zero_based=True)
+    validation_data, validation_labels = load_svmlight_file("dt1_1500.vld.svm", n_features=253659, zero_based=True)
+    testing_data, testing_labels = load_svmlight_file("dt1_1500.tst.svm", n_features=253659, zero_based=True)
+  else:
+    training_data, training_labels = load_svmlight_file("dt1.trn.svm", n_features=253659, zero_based=True)
+    validation_data, validation_labels = load_svmlight_file("dt1.vld.svm", n_features=253659, zero_based=True)
+    testing_data, testing_labels = load_svmlight_file("dt1.tst.svm", n_features=253659, zero_based=True)
+
+  from sklearn.semi_supervised import LabelPropagation
+  from sklearn.metrics import accuracy_score
+  from sklearn.grid_search import ParameterGrid
+
+  propOperator = LabelPropagation(gamma=150)
+
+  propOperator.fit(training_data[:3000],training_labels[:3000])
+  score = accuracy_score(validation_labels, propOperator.predict(validation_data))
+  print str(score)
+
 
 def tryTruncatedSVD(goFast):
   bestScore = 0
@@ -94,21 +337,6 @@ def tryTruncatedSVD(goFast):
   print "***FINAL best score: " + str(bestScore)
   print "***FINAL RFC Params: " + str(rfc_parameter_set)
   print "***FINAL RPCA Params: " + str(rpca_parameter_set)
-
-#options:
-# n_estimators (int, default = 10)
-# criterion ("gini" or "entropy")
-# max_features ("auto")
-# max_depth (10, 100, 1000)
-# min_samples_split (2, 8, 32)
-# min_samples_leaf (1, 4, 16)
-# bootstrap (true/false)
-# oob_score (true/false)
-# n_jobs (1, 2, 4)
-# verbose (1)
-
-
-
 
 def fitAndScoreWithLinearSVC(training_data, training_labels, validation_data, validation_labels):
   from sklearn.svm import LinearSVC; from sklearn.metrics import accuracy_score
@@ -231,7 +459,7 @@ def tryLinearSVC(goFast):
         best_score = None
         best_svc = None
 
-        for c_value in [1, 10, 50, 100]:
+        for c_value in [10, 50, 100]:
           for loss_value in ['l1','l2']:
             for penalty_value in ['l1','l2']:
               for dual_value in [True, False]:
