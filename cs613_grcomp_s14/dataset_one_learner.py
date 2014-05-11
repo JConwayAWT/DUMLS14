@@ -1,5 +1,6 @@
 import argparse
 import sys, os
+import winsound
 
 import numpy as np
 from sklearn.externals import joblib
@@ -126,6 +127,16 @@ def main():
 ##             }]
 ##  tryDenseOperator(False,KMeans,kmGrid)
 
+  from sklearn.neighbors import KNeighborsClassifier
+  knnGrid = [{"n_neighbors":[1,2,4,8,16,32,64],
+              "weight":["uniform","distance"],
+              "algorithm":["ball_tree","kd_tree","brute"],
+              "leaf_size":[3,10,30,100],
+              "p":[1,2, 3, 4],
+              }]
+  trySparseOperator(False,KNeighborsClassifier,knnGrid)
+  winsound.Beep(440,1000)
+
 def trySparseOperator(goFast, operatorClass, parameterGrid):
   bestScore = 0
   bestOperatorParams = None
@@ -151,15 +162,15 @@ def trySparseOperator(goFast, operatorClass, parameterGrid):
       print "Score = " + str(score)
       if score > bestScore:
         bestScore = score
-        bestOperatorParams = dense_operator_parameter_set
+        bestOperatorParams = sparse_operator_parameter_set
         print "***New best score: " + str(bestScore)
         print "***Operator params: " + str(sparse_operator_parameter_set)
     except:
       print "Illegal combination skipped"
-      print sys.exc_info()[0]
+      print sys.exc_info()[:2]
 
   print "***New best score: " + str(bestScore)
-  print "***Operator params: " + str(sparse_operator_parameter_set)
+  print "***Operator params: " + str(bestOperatorParams)
 
 def tryDenseOperator(goFast, operatorClass, parameterGrid):
   bestScore = 0
