@@ -127,14 +127,18 @@ def main():
 ##             }]
 ##  tryDenseOperator(False,KMeans,kmGrid)
 
-  from sklearn.neighbors import KNeighborsClassifier
-  knnGrid = [{"n_neighbors":[1,2,4,8,16,32,64],
-              "weight":["uniform","distance"],
-              "algorithm":["ball_tree","kd_tree","brute"],
-              "leaf_size":[3,10,30,100],
-              "p":[1,2, 3, 4],
-              }]
-  trySparseOperator(False,KNeighborsClassifier,knnGrid)
+
+##  ***New best score: 0.3244
+##  ***Operator params: {'n_neighbors': 64, 'weight': 'uniform', 'leaf_size': 3, 'algorithm': 'ball_tree', 'p': 2}
+##  from sklearn.neighbors import KNeighborsClassifier
+##  knnGrid = [{"n_neighbors":[1,2,4,8,16,32,64],
+##              "weight":["uniform","distance"],
+##              "algorithm":["ball_tree","kd_tree","brute"],
+##              "leaf_size":[3,10,30,100],
+##              "p":[1,2, 3, 4],
+##              }]
+##  trySparseOperator(False,KNeighborsClassifier,knnGrid)
+
   winsound.Beep(440,1000)
 
 def trySparseOperator(goFast, operatorClass, parameterGrid):
@@ -192,8 +196,8 @@ def tryDenseOperator(goFast, operatorClass, parameterGrid):
   from sklearn.decomposition import RandomizedPCA
 
   rpcaDataGrid = [{"n_components": [10,45,70,100],
-                    "iterated_power": [2, 3, 4],
-                    "whiten": [True]}]
+                    "iterated_power": [1, 2, 3, 4],
+                    "whiten": [False, True]}]
 
   for rpca_parameter_set in ParameterGrid(rpcaDataGrid):
     try:
