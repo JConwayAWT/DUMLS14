@@ -139,6 +139,16 @@ def main():
 ##              }]
 ##  trySparseOperator(False,KNeighborsClassifier,knnGrid)
 
+  from sklearn.svm import LinearSVC
+  svc_parameter_grid = [{
+    "C":[1, 5, 10],
+    "dual":[True, False],
+    "multi_class":["ovr","crammer_singer"],
+    "fit_intercept":[True, False],
+    "class_weight":['auto']
+  }]
+  trySparseOperator(False,LinearSVC,svc_parameter_grid)
+
   winsound.Beep(440,1000)
 
 def trySparseOperator(goFast, operatorClass, parameterGrid):
