@@ -97,7 +97,7 @@ if __name__ == '__main__':
 
         parser.add_argument('-plotsvd', type=bool,
                             default=False,
-                            help='Visualizes SVD-reprojected dataset #1')
+                            help='Visualizes SVD-reprojected dataset #2')
 
         if len(sys.argv) == 1:
             parser.print_help()
@@ -105,7 +105,7 @@ if __name__ == '__main__':
 
         args = parser.parse_args()
 
-	args.id = 1 # override whatever user's input since we only be experimenting with dataset #1 here...
+	args.id = 1 # override whatever user's input since we only be experimenting with dataset #2 here...
         n_features = 253659
         
         fname_trn = os.path.join(args.d, "dt%d.%s.svm" % (args.id, "trn"))
